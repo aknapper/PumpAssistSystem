@@ -165,7 +165,7 @@ void loop() {
 
       if (setting6Counter < 0)                       // Sets the setting counter limit to 0 for now. The user cannot decrease the counter beyond 0.
         {
-        setting5Counter = 0;
+        setting6Counter = 0;
         }
       }
 
