@@ -133,11 +133,11 @@ void loop() {
     buttonStateUp = currentButtonStateUp; 
      if (buttonStateUp == HIGH && directionPush == 5)    // each push will add 10 increments to the throttle counter.  
       {                    
-      setting5Counter = setting5Counter + 1; 
+      setting5Counter = setting5Counter + 10; 
       
-      if (setting5Counter > 16)                       // Sets the setting5 counter limit to 100. The user cannot increase the counter beyond 100.
+      if (setting5Counter > 100)                       // Sets the setting5 counter limit to 100. The user cannot increase the counter beyond 100.
         {
-        setting5Counter = 16;
+        setting5Counter = 100;
         }
     }
 
@@ -161,7 +161,7 @@ void loop() {
 
       if (buttonStateDown == HIGH && directionPush == 5)   //  each push will subtract 10 increment from the throttle counter.                      
       {                                                   
-      setting5Counter = setting5Counter - 1;
+      setting5Counter = setting5Counter - 10;
 
       if (setting5Counter < 0)                       // Sets the setting counter limit to 0 for now. The user cannot decrease the counter beyond 0.
         {
