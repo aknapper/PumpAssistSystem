@@ -43,26 +43,54 @@ void setup() {
   Serial.println("Completed Pump Controller Setup\n\n");
 }
 
-
-
-// heartbeat
-long heartbeatPreviousTime = 0;
-unsigned short int heartbeatInterval = 5000;    // in msec
+// control variables
+char realThrottleState = 0;
+unsigned short int realRPMState = 0;
+unsigned char realFuelState = 0;
+unsigned char realKillStopState = 1;
 
 // radio stuff
-long radioPreviousTime = 0;
-unsigned short int radioStatusTransmitInterval = 4000;   // interval in msecs
+uint8_t data[] = "Throttle: 050%. RPM: 3500rpm. Fuel Level: 30%. KillSwitch: ON.";    // initial status message
 
-uint8_t data[] = "Throttle: 050%. RPM: 3500rpm. Fuel Level: 30%. KillSwitch: ON.";
 // Dont put this on the stack:
 uint8_t buf[RH_RF95_MAX_MESSAGE_LEN];
-
 uint8_t receive_message[] = "Pump Controller: Received Status Message.";
 
-
-
-
 void loop() {
+  // receive handheld status message
+  if (manager.available())
+  {
+    // Wait for a message addressed to us from the client
+    uint8_t len = sizeof(buf);
+    uint8_t from;
+    if (manager.recvfromAck(buf, &len, &from))
+    {
+      Serial.print("got request from : 0x");
+      Serial.print(from, HEX);
+      Serial.print(": ");
+      Serial.println((char*)buf); Serial.println("");
+
+      // Send a reply back to the originator client
+      if (!manager.sendtoWait(receive_message, sizeof(receive_message), from))
+        Serial.println("Send response failed.");
+    }
+  }
+
+  // do stuff here
+  
+  // // inject autoincrementing input
+  // if (realThrottleState < 100)
+  // {
+  //   realThrottleState++;
+  //   delay(300);       // temp blocking BAD :(
+  // }
+  // else
+  // {
+  //   realThrottleState = 0;
+  // }
+
+  
+
   // send radio status message to handheld controller 
   unsigned long radioCurrentTime = millis();
   if (radioCurrentTime - radioPreviousTime > radioStatusTransmitInterval)
@@ -73,7 +101,7 @@ void loop() {
     Serial.println("Sending status message to pump controller.");
       
     // Send a message to manager_server
-    if (manager.sendtoWait(data, sizeof(data), CLIENT_ADDRESS))
+    if (manager.sendtoWait( (uint8_t *)data, sizeof(data), CLIENT_ADDRESS))
     {
       // Now wait for a reply from the server
       uint8_t len = sizeof(buf);
@@ -96,33 +124,11 @@ void loop() {
       Serial.println("Status message send failed"); Serial.println("");
   }
 
-  // do stuff here
-  
-
   // heartbeat
   unsigned long heartbeatCurrentTime = millis();
   if (heartbeatCurrentTime - heartbeatPreviousTime > heartbeatInterval)
   {
     heartbeatPreviousTime = heartbeatCurrentTime;
     Serial.println("Heartbeat"); Serial.println("");
-  }
-
-  // receive handheld status message
-  if (manager.available())
-  {
-    // Wait for a message addressed to us from the client
-    uint8_t len = sizeof(buf);
-    uint8_t from;
-    if (manager.recvfromAck(buf, &len, &from))
-    {
-      Serial.print("got request from : 0x");
-      Serial.print(from, HEX);
-      Serial.print(": ");
-      Serial.println((char*)buf); Serial.println("");
-
-      // Send a reply back to the originator client
-      if (!manager.sendtoWait(receive_message, sizeof(receive_message), from))
-        Serial.println("Send response failed.");
-    }
   }
 }

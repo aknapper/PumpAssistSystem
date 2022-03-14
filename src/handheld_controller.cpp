@@ -46,15 +46,9 @@ void setup() {
 
   Serial.println("Completed Handheld Controller Setup\n\n");
 }
-// heartbeat
-long heartbeatPreviousTime = 0;
-unsigned short int heartbeatInterval = 5000;    // in msec
-
 // radio stuff
-long radioPreviousTime = 0;
-unsigned short int radioStatusTransmitInterval = 4000;   // interval in msecs
 
-uint8_t data[] = "Throttle: 072%. RPM: 5000rpm.";
+uint8_t data[] = "Throttle: 072%. KillSwitch: ON.";
 // Dont put this on the stack:
 uint8_t buf[RH_RF95_MAX_MESSAGE_LEN];
 
@@ -62,12 +56,31 @@ uint8_t receive_message[] = "Handheld Controller: Received Status Message.";
 
 
 void loop() {
-  // update lcd display
+  // receive pump status message
+  if (manager.available())
+  {
+    // Wait for a message addressed to us from the client
+    uint8_t len = sizeof(buf);
+    uint8_t from;
+    if (manager.recvfromAck(buf, &len, &from))
+    {
+      Serial.print("got request from : 0x");
+      Serial.print(from, HEX);
+      Serial.print(": ");
+      Serial.println((char*)buf); Serial.println("");
 
-  // push buttons and target states for throttle and killswitch
-  bool targetKillSwitchState = false;   // false = disengaged, true = engaged
-  char targetThrottleState = 72;
-  // 
+      // Send a reply back to the originator client
+      if (!manager.sendtoWait(receive_message, sizeof(receive_message), from))
+        Serial.println("Send response failed.");
+    }
+  }
+  // do stuff here
+  
+
+
+
+
+
 
   // send radio status message to pump controller 
   unsigned long radioCurrentTime = millis();
@@ -102,9 +115,6 @@ void loop() {
       Serial.println("Status message send failed"); Serial.println("");
   }
 
-  // do stuff here
-  
-
   // heartbeat
   unsigned long heartbeatCurrentTime = millis();
   if (heartbeatCurrentTime - heartbeatPreviousTime > heartbeatInterval)
@@ -112,24 +122,4 @@ void loop() {
     heartbeatPreviousTime = heartbeatCurrentTime;
     Serial.println("Heartbeat"); Serial.println("");
   }
-
-  // receive pump status message
-  if (manager.available())
-  {
-    // Wait for a message addressed to us from the client
-    uint8_t len = sizeof(buf);
-    uint8_t from;
-    if (manager.recvfromAck(buf, &len, &from))
-    {
-      Serial.print("got request from : 0x");
-      Serial.print(from, HEX);
-      Serial.print(": ");
-      Serial.println((char*)buf); Serial.println("");
-
-      // Send a reply back to the originator client
-      if (!manager.sendtoWait(receive_message, sizeof(receive_message), from))
-        Serial.println("Send response failed.");
-    }
-  }
-
 }
