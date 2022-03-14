@@ -1,3 +1,5 @@
+#include <string.h>
+
 // Radio
 #define RFM95_CS 10         // chip select pin
 #define RFM95_RST 4         // reset pin
@@ -9,3 +11,6 @@
 // Serial
 #define BAUD_RATE 9600
 
+// heartbeat
+long heartbeatPreviousTime = 0;
+unsigned short int heartbeatInterval = 5000;    // in msec
