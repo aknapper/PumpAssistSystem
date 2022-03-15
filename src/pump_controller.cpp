@@ -10,6 +10,21 @@ RHReliableDatagram manager(driver, SERVER_ADDRESS);
 
 HPP_Controller pump_controller(1,2,3);
 
+// control variables
+int realThrottleState = 100;              // acceptable range: 0-100 (%)
+int targetThrottleState = 100;  
+int realRPMState = 3500;               // acceptable range: 0-4000 (RPM)
+int realFuelState = 150;              // acceptable range: 0-100 (%)
+int realKillStopState = 1;                        // 1 (true) = system ON, 0 (false) = system OFF
+int targetKillStopState = 1;
+
+// radio stuff
+char statusMessage [63];    // initial status message
+
+// Dont put this on the stack:
+uint8_t buf[RH_RF95_MAX_MESSAGE_LEN];
+uint8_t receive_message[] = "Pump Controller: Received Status Message.";
+
 void setup() {
   // Serial Setup
   while (!Serial) ; // Wait for serial port to be available
@@ -37,24 +52,14 @@ void setup() {
     while (1);
   }
   Serial.print("Set Radio Frequency to: "); Serial.print(RF95_FREQ); Serial.println("Hz");
+  driver.setTxPower(RF95_TX_POWER, false);
+  Serial.print("Radio transmit power set to: "); Serial.print(RF95_TX_POWER); Serial.println("dBm");
+  
   Serial.println("Completed radio setup.");
 
 
   Serial.println("Completed Pump Controller Setup\n\n");
 }
-
-// control variables
-char realThrottleState = 0;
-unsigned short int realRPMState = 0;
-unsigned char realFuelState = 0;
-unsigned char realKillStopState = 1;
-
-// radio stuff
-uint8_t data[] = "Throttle: 050%. RPM: 3500rpm. Fuel Level: 30%. KillSwitch: ON.";    // initial status message
-
-// Dont put this on the stack:
-uint8_t buf[RH_RF95_MAX_MESSAGE_LEN];
-uint8_t receive_message[] = "Pump Controller: Received Status Message.";
 
 void loop() {
   // receive handheld status message
@@ -76,20 +81,25 @@ void loop() {
     }
   }
 
+
+
   // do stuff here
   
-  // // inject autoincrementing input
-  // if (realThrottleState < 100)
-  // {
-  //   realThrottleState++;
-  //   delay(300);       // temp blocking BAD :(
-  // }
-  // else
-  // {
-  //   realThrottleState = 0;
-  // }
 
-  
+
+  // set control values to random values within their respective range
+  realThrottleState = rand() % (100 + 1 - 0);
+  realRPMState = rand() % (4000 + 1 - 0);
+  realFuelState = rand() % (100 + 1 - 0);
+  realKillStopState = rand() % (1 + 1 - 0);
+
+  // generate status message
+  sprintf (statusMessage, "Throttle: %d%%. RPM: %drpm. Fuel Level: %d%%. KillSwitch: %d.",realThrottleState,\
+                                                                                          realRPMState,\
+                                                                                          realFuelState,\
+                                                                                          realKillStopState);
+
+
 
   // send radio status message to handheld controller 
   unsigned long radioCurrentTime = millis();
@@ -101,7 +111,7 @@ void loop() {
     Serial.println("Sending status message to pump controller.");
       
     // Send a message to manager_server
-    if (manager.sendtoWait( (uint8_t *)data, sizeof(data), CLIENT_ADDRESS))
+    if (manager.sendtoWait( (uint8_t *)statusMessage, sizeof(statusMessage), CLIENT_ADDRESS))
     {
       // Now wait for a reply from the server
       uint8_t len = sizeof(buf);
@@ -123,6 +133,8 @@ void loop() {
     else
       Serial.println("Status message send failed"); Serial.println("");
   }
+
+
 
   // heartbeat
   unsigned long heartbeatCurrentTime = millis();

@@ -41,8 +41,9 @@ void setup() {
     while (1);
   }
   Serial.print("Set Radio Frequency to: "); Serial.print(RF95_FREQ); Serial.println("Hz");
+  driver.setTxPower(RF95_TX_POWER, false);
+  Serial.print("Radio transmit power set to: "); Serial.print(RF95_TX_POWER); Serial.println("dBm");
   Serial.println("Completed radio setup.");
-
 
   Serial.println("Completed Handheld Controller Setup\n\n");
 }
