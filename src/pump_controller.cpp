@@ -11,15 +11,15 @@ RHReliableDatagram manager(driver, SERVER_ADDRESS);
 HPP_Controller pump_controller(1,2,3);
 
 // control variables
-int realThrottleState = 100;              // acceptable range: 0-100 (%)
-int targetThrottleState = 100;  
+int realThrottleState = 16;              // acceptable range: 0-16
+int targetThrottleState = 16;  
 int realRPMState = 3500;               // acceptable range: 0-4000 (RPM)
 int realFuelState = 150;              // acceptable range: 0-100 (%)
 int realKillStopState = 1;                        // 1 (true) = system ON, 0 (false) = system OFF
 int targetKillStopState = 1;
 
 // radio stuff
-char statusMessage [63];    // initial status message
+char statusMessage [5];    // initial status message
 
 // Dont put this on the stack:
 uint8_t buf[RH_RF95_MAX_MESSAGE_LEN];
@@ -70,10 +70,14 @@ void loop() {
     uint8_t from;
     if (manager.recvfromAck(buf, &len, &from))
     {
+      targetThrottleState = (int) buf[0];
+      targetKillStopState = (int) buf[1];
       Serial.print("got request from : 0x");
       Serial.print(from, HEX);
       Serial.print(": ");
-      Serial.println((char*)buf); Serial.println("");
+      Serial.print("Throttle: "); Serial.print((int) buf[0]); Serial.print(". ");
+      Serial.print("Killswitch: "); Serial.print((int) buf[1]); Serial.println(". ");
+
 
       // Send a reply back to the originator client
       if (!manager.sendtoWait(receive_message, sizeof(receive_message), from))
@@ -88,18 +92,14 @@ void loop() {
 
 
   // set control values to random values within their respective range
-  realThrottleState = rand() % (100 + 1 - 0);
+  realThrottleState = rand() % (16 + 1 - 0);
   realRPMState = rand() % (4000 + 1 - 0);
   realFuelState = rand() % (100 + 1 - 0);
   realKillStopState = rand() % (1 + 1 - 0);
 
   // generate status message
-  sprintf (statusMessage, "Throttle: %d%%. RPM: %drpm. Fuel Level: %d%%. KillSwitch: %d.",realThrottleState,\
-                                                                                          realRPMState,\
-                                                                                          realFuelState,\
-                                                                                          realKillStopState);
-
-
+  uint8_t statusMessage [] = { realThrottleState, realFuelState, realKillStopState,\
+                               (uint8_t) (realRPMState >> 8), (uint8_t) realRPMState};
 
   // send radio status message to handheld controller 
   unsigned long radioCurrentTime = millis();
