@@ -5,11 +5,14 @@ int Position;
 void setup(){
 Dynamixel.setSerial(&Serial); // &Serial - Arduino UNO/NANO/MICRO, &Serial1, &Serial2, &Serial3 - Arduino Mega
 Dynamixel.begin(1000000,2);  // Inicialize the servo at 1 Mbps and Pin Control 2
+ Dynamixel.setEndless (1, OFF);
+ Dynamixel.torqueStatus (1, OFF);
 delay(1000);
 }
 
-void loop(){
-  
+void loop()
+{
+
   Position = Dynamixel.readPosition(1);       // Request and Print the Position
  
  Dynamixel.end();                 // End Servo Comunication
@@ -21,6 +24,6 @@ void loop(){
  Serial.end();                     // End the Serial Comunication
  Dynamixel.begin(1000000,2);         // Begin Servo Comunication
  
-delay(5000);
+delay(2000);
 
 }
