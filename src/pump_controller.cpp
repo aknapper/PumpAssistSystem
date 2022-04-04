@@ -138,9 +138,9 @@ void loop() {
 
 
   // set control values to random values within their respective range
-  realThrottleState = rand() % (16 + 1 - 0);
+  // realThrottleState = rand() % (16 + 1 - 0);
   realRPMState = rand() % (4000 + 1 - 0);
-  realFuelState = rand() % (100 + 1 - 0);
+  // realFuelState = rand() % (100 + 1 - 0);
   realKillStopState = rand() % (1 + 1 - 0);
 
   // generate status message
