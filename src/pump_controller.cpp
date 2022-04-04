@@ -11,12 +11,12 @@ RHReliableDatagram manager(driver, SERVER_ADDRESS);
 HPP_Controller pump_controller(1,2,3);
 
 // control variables
-int realThrottleState = 16;              // acceptable range: 0-16
-int targetThrottleState = 16;  
-int realRPMState = 3500;               // acceptable range: 0-4000 (RPM)
-int realFuelState = 150;              // acceptable range: 0-100 (%)
-int realKillStopState = 1;                        // 1 (true) = system ON, 0 (false) = system OFF
-int targetKillStopState = 1;
+int realThrottleState;              // acceptable range: 0-16
+int targetThrottleState;  
+int realRPMState;               // acceptable range: 0-4000 (RPM)
+int realFuelState;              // acceptable range: 0-100 (%)
+int realKillStopState;                        // 1 (true) = system ON, 0 (false) = system OFF
+int targetKillStopState;
 
 // radio stuff
 char statusMessage [5];    // initial status message
@@ -24,6 +24,21 @@ char statusMessage [5];    // initial status message
 // Dont put this on the stack:
 uint8_t buf[RH_RF95_MAX_MESSAGE_LEN];
 uint8_t receive_message[] = "Pump Controller: Received Status Message.";
+
+// fuel sensor variables
+int AnalogVoltage = 0; 
+int Vin = 5;
+float DigitalVoltage = 0;
+float R1 = 180.0;           //Value of Known Resistor is 180 Ohms
+float R_Variable= 0;        // Variable Resistor Value ( 1 Ohm to 193 Ohms)
+
+void pollFuelSensor(int* fuelLevel) {
+    AnalogVoltage= analogRead(FUEL_SENSOR_PIN);             // Reads voltage level ( 0 - 1023) across variable resistor
+    Serial.print("Analog Voltage: "); Serial.println(AnalogVoltage);
+        DigitalVoltage = (AnalogVoltage/1024.0)* Vin ;      // Analog voltage across variable resistor 
+        R_Variable = R1 * ((Vin/DigitalVoltage) -1);        // Determines Resistance across variable resistor
+        *fuelLevel = map((int) (0.520833 * (R_Variable - 1))*100,200,10350,0,100);    // Calculates Fuel Level in %, represented by linear equation: y=mx+b 
+}
 
 void setup() {
   // Serial Setup
@@ -85,10 +100,17 @@ void loop() {
     }
   }
 
-
-
   // do stuff here
+  // throttle (servo) stuff
   
+
+  // killswitch (relay) stuff
+
+
+  // fuel sensor stuff
+  pollFuelSensor( &realFuelState);
+
+  // RPM sensor stuff
 
 
   // set control values to random values within their respective range

@@ -9,3 +9,6 @@
 // Radio settings
 long radioPreviousTime = 0;
 unsigned short int radioStatusTransmitInterval = 4000;   // interval in msecs
+
+// fuel sensor
+#define FUEL_SENSOR_PIN 0       // analog input
