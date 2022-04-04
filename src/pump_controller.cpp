@@ -1,6 +1,7 @@
 #include <RH_RF95.h>
 #include <RHReliableDatagram.h>
 #include <SPI.h>
+#include <DynamixelSerial.h>
 
 #include <HPP_Controller.h>
 #include <pump_config.h>
@@ -11,8 +12,8 @@ RHReliableDatagram manager(driver, SERVER_ADDRESS);
 HPP_Controller pump_controller(1,2,3);
 
 // control variables
-int realThrottleState;              // acceptable range: 0-16
-int targetThrottleState;  
+long realThrottleState;              // acceptable range: 0-16
+long targetThrottleState;  
 int realRPMState;               // acceptable range: 0-4000 (RPM)
 int realFuelState;              // acceptable range: 0-100 (%)
 int realKillStopState;                        // 1 (true) = system ON, 0 (false) = system OFF
@@ -40,6 +41,22 @@ void pollFuelSensor(int* fuelLevel) {
         *fuelLevel = map((int) (0.520833 * (R_Variable - 1))*100,200,10350,0,100);    // Calculates Fuel Level in %, represented by linear equation: y=mx+b 
 }
 
+// servo variables
+int MaxPos = 661;   //Position at idle 
+int deltaPOS = 17;  //Resolution per tick
+
+void setThrottlePosition(long* targetThrottleState){
+  // set servo resolution 661-389 given an integer 0-16 respectively
+    Dynamixel.move(1,MaxPos - (deltaPOS * *targetThrottleState));
+}
+
+void getThrottlePosition(long* realThrottleState){
+  /* Set realThrottle as an integer 0-16 based on the position of the servo.
+     Result is rounded to avoid issues with the actual measured resolution sometimes being ~+/- 3 degrees the set value
+  */
+  *realThrottleState = round((MaxPos-Dynamixel.readPosition(1))/deltaPOS);
+}
+
 void setup() {
   // Serial Setup
   while (!Serial) ; // Wait for serial port to be available
@@ -51,6 +68,12 @@ void setup() {
 
   // other setup - TODO
   
+  // servo setup
+  Dynamixel.setSerial(&Serial1); // &Serial1 -> TX1/RX1 : D18/D19
+  Dynamixel.begin(DYNAMIXEL_BAUDRATE,DYNAMIXEL_CONTROL_PIN);  // Initialize the servo at 1 Mbps and Pin Control 2
+  delay(500);
+  Dynamixel.setEndless(1,OFF);
+  Dynamixel.torqueStatus (1, OFF);
   
   // radio setup
   Serial.println("Initializing RRM95 Radio");
@@ -102,7 +125,8 @@ void loop() {
 
   // do stuff here
   // throttle (servo) stuff
-  
+  setThrottlePosition( &targetThrottleState);
+  getThrottlePosition( &realThrottleState);
 
   // killswitch (relay) stuff
 

@@ -12,3 +12,7 @@ unsigned short int radioStatusTransmitInterval = 4000;   // interval in msecs
 
 // fuel sensor
 #define FUEL_SENSOR_PIN 0       // analog input
+
+// servo
+#define DYNAMIXEL_CONTROL_PIN 2
+#define DYNAMIXEL_BAUDRATE 1000000

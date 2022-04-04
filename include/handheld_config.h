@@ -3,7 +3,6 @@
 // LCD and button dependencies
 #include <Wire.h>               // deals with I2C connections
 #include <LiquidCrystal_I2C.h>  // activates the LCD I2C library
-#include <Arduino.h>
 
 // RF95 Radio I/O definitions
 #define RFM95_CS 53         // chip select pin

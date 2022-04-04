@@ -1,4 +1,5 @@
 #include <string.h>
+#include <Arduino.h>
 
 // Radio
 #define RF95_FREQ 915.0     // Change to 434.0 or other frequency, must match RX's freq!
