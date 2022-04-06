@@ -19,3 +19,6 @@ unsigned short int radioStatusTransmitInterval = 4000;   // interval in msecs
 
 // killswitch
 #define RELAY_PIN 38
+
+// rpm sensor
+#define RPM_SENSOR_PIN 37

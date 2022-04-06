@@ -71,6 +71,14 @@ void getEmergencyStop(int* realKillStopState){
   *realKillStopState = digitalRead(RELAY_PIN);  // sets realKillStopState to 1 or 0 (True or False)
 }
 
+void pollRPMSensor(int* realRPMState){
+  float onTime = pulseIn (RPM_SENSOR_PIN, HIGH);        // Reads amount of time in microseconds that Pin is HIGH
+                                                        // HIGH > 3V (on 5V boards), HIGH > 2V (on 3.3V boards) 
+  float offTime = pulseIn (RPM_SENSOR_PIN, LOW);        // Reads amount of time in microseconds that Pin is LOW
+                                                        // LOW < 1.5V (on 5V boards), LOW < 1.0V (on 3.3V boards) 
+  *realRPMState = (1000000/(onTime + offTime))*60;
+}
+
 void setup() {
   // Serial Setup
   while (!Serial) ; // Wait for serial port to be available
@@ -80,7 +88,9 @@ void setup() {
   Serial.println("--- HPPA System: Pump Controller ---\n");
   Serial.println("Starting Pump Controller Setup");
 
-  // other setup - TODO
+  // rpm sensor stuff
+  pinMode(RPM_SENSOR_PIN, INPUT);
+
   // relay setup
   pinMode(RELAY_PIN, OUTPUT);         // set e-stop OFF, pump ON
 
@@ -151,11 +161,11 @@ void loop() {
   pollFuelSensor( &realFuelState);
 
   // RPM sensor stuff
-
+  pollRPMSensor( &realRPMState);
 
   // set control values to random values within their respective range
   // realThrottleState = rand() % (16 + 1 - 0);
-  realRPMState = rand() % (4000 + 1 - 0);
+  // realRPMState = rand() % (4000 + 1 - 0);
   // realFuelState = rand() % (100 + 1 - 0);
   // realKillStopState = rand() % (1 + 1 - 0);
 
