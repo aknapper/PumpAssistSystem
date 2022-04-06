@@ -35,10 +35,10 @@ float R_Variable= 0;        // Variable Resistor Value ( 1 Ohm to 193 Ohms)
 
 void pollFuelSensor(int* fuelLevel) {
     AnalogVoltage= analogRead(FUEL_SENSOR_PIN);             // Reads voltage level ( 0 - 1023) across variable resistor
-    Serial.print("Analog Voltage: "); Serial.println(AnalogVoltage);
-        DigitalVoltage = (AnalogVoltage/1024.0)* Vin ;      // Analog voltage across variable resistor 
-        R_Variable = R1 * ((Vin/DigitalVoltage) -1);        // Determines Resistance across variable resistor
-        *fuelLevel = map((int) (0.520833 * (R_Variable - 1))*100,200,10350,0,100);    // Calculates Fuel Level in %, represented by linear equation: y=mx+b 
+    // Serial.print("Analog Voltage: "); Serial.println(AnalogVoltage);
+    DigitalVoltage = (AnalogVoltage/1024.0)* Vin ;      // Analog voltage across variable resistor 
+    R_Variable = R1 * ((Vin/DigitalVoltage) -1);        // Determines Resistance across variable resistor
+    *fuelLevel = map((int) (0.520833 * (R_Variable - 1))*100,200,10350,0,100);    // Calculates Fuel Level in %, represented by linear equation: y=mx+b 
 }
 
 // servo variables
@@ -48,6 +48,7 @@ int deltaPOS = 17;  //Resolution per tick
 void setThrottlePosition(long* targetThrottleState){
   // set servo resolution 661-389 given an integer 0-16 respectively
     Dynamixel.move(1,MaxPos - (deltaPOS * *targetThrottleState));
+    Dynamixel.torqueStatus (1, OFF);
 }
 
 void getThrottlePosition(long* realThrottleState){
@@ -73,7 +74,6 @@ void setup() {
   Dynamixel.begin(DYNAMIXEL_BAUDRATE,DYNAMIXEL_CONTROL_PIN);  // Initialize the servo at 1 Mbps and Pin Control 2
   delay(500);
   Dynamixel.setEndless(1,OFF);
-  Dynamixel.torqueStatus (1, OFF);
   
   // radio setup
   Serial.println("Initializing RRM95 Radio");
