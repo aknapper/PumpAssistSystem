@@ -16,3 +16,6 @@ unsigned short int radioStatusTransmitInterval = 4000;   // interval in msecs
 // servo
 #define DYNAMIXEL_CONTROL_PIN 6
 #define DYNAMIXEL_BAUDRATE 1000000
+
+// killswitch
+#define RELAY_PIN 38

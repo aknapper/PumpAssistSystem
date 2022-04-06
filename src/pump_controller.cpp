@@ -58,6 +58,19 @@ void getThrottlePosition(long* realThrottleState){
   *realThrottleState = round((MaxPos-Dynamixel.readPosition(1))/deltaPOS);
 }
 
+void setEmergencyStop(int* targetKillStopState){
+  if (*targetKillStopState){                    // is 1 (True)
+    digitalWrite(RELAY_PIN, HIGH);              // set relay pin high (pump on / e-stop not on)
+  }
+  else if (!*targetKillStopState){              // is 0 (False)
+    digitalWrite(RELAY_PIN, LOW);               // set relay pin low (pump off / e-stop on)
+  }
+}
+
+void getEmergencyStop(int* realKillStopState){
+  *realKillStopState = digitalRead(RELAY_PIN);  // sets realKillStopState to 1 or 0 (True or False)
+}
+
 void setup() {
   // Serial Setup
   while (!Serial) ; // Wait for serial port to be available
@@ -68,7 +81,9 @@ void setup() {
   Serial.println("Starting Pump Controller Setup");
 
   // other setup - TODO
-  
+  // relay setup
+  pinMode(RELAY_PIN, OUTPUT);         // set e-stop OFF, pump ON
+
   // servo setup
   Dynamixel.setSerial(&Serial1); // &Serial1 -> TX1/RX1 : D18/D19
   Dynamixel.begin(DYNAMIXEL_BAUDRATE,DYNAMIXEL_CONTROL_PIN);  // Initialize the servo at 1 Mbps and Pin Control 2
@@ -129,13 +144,14 @@ void loop() {
   getThrottlePosition( &realThrottleState);
 
   // killswitch (relay) stuff
-
+  setEmergencyStop( &targetKillStopState);
+  getEmergencyStop( &realKillStopState);
 
   // fuel sensor stuff
   pollFuelSensor( &realFuelState);
 
   // RPM sensor stuff
-
+  
 
   // set control values to random values within their respective range
   // realThrottleState = rand() % (16 + 1 - 0);
